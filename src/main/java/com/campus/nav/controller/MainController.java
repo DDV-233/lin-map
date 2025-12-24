@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
 
@@ -109,26 +110,81 @@ public class MainController extends BaseController {
     private void loadLocations() {
         try {
             List<Location> locations = locationService.findAccessibleLocations();
-            
-            // 更新下拉框
+
+            // 创建自定义的下拉框模型
             DefaultComboBoxModel<Location> model = new DefaultComboBoxModel<Location>();
             locations.forEach(model::addElement);
-            
-            mainFrame.getStartLocationComboBox().setModel(model);
-            mainFrame.getEndLocationComboBox().setModel(new DefaultComboBoxModel<Location>(
-                    locations.toArray(new Location[0])
-            ));
-            
+
+            // 获取下拉框组件
+            JComboBox<Location> startCombo = mainFrame.getStartLocationComboBox();
+            JComboBox<Location> endCombo = mainFrame.getEndLocationComboBox();
+
+            // 设置下拉框模型
+            startCombo.setModel(model);
+            endCombo.setModel(new DefaultComboBoxModel<>(locations.toArray(new Location[0])));
+
+            // 设置自定义渲染器，只显示地点名称
+            setLocationComboBoxRenderer(startCombo);
+            setLocationComboBoxRenderer(endCombo);
+
+            // 添加空选项到开头
+            startCombo.insertItemAt(null, 0);
+            endCombo.insertItemAt(null, 0);
+            startCombo.setSelectedIndex(0);
+            endCombo.setSelectedIndex(0);
+
             // 更新地图面板
             MapPanel mapPanel = mainFrame.getMapPanel();
             mapPanel.setLocations(locations);
-            
+
             logger.info("加载了 {} 个地点", locations.size());
-            
+
         } catch (Exception e) {
             logger.error("加载地点数据失败", e);
             showErrorDialog("加载地点数据失败: " + e.getMessage());
         }
+    }
+
+    /**
+     * 为地点下拉框设置自定义渲染器
+     */
+    private void setLocationComboBoxRenderer(JComboBox<Location> comboBox) {
+        comboBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value,
+                                                          int index, boolean isSelected,
+                                                          boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+
+                if (value == null) {
+                    setText("请选择地点...");
+                    setFont(getFont().deriveFont(Font.ITALIC));
+                    setForeground(Color.GRAY);
+                } else if (value instanceof Location) {
+                    Location location = (Location) value;
+                    String displayText = location.getName();
+
+                    // 如果需要，可以添加类型信息
+                    if (location.getType() != null) {
+                        displayText += " (" + location.getType().getDescription() + ")";
+                    }
+
+                    setText(displayText);
+                    setFont(getFont().deriveFont(Font.PLAIN));
+                    setForeground(Color.BLACK);
+
+                    // 如果地点不可通行，可以用灰色显示
+                    if (Boolean.FALSE.equals(location.getIsAccessible())) {
+                        setForeground(Color.GRAY);
+                        setEnabled(false);
+                    }
+                } else {
+                    setText(value.toString());
+                }
+
+                return this;
+            }
+        });
     }
     /*
     * 加载路径数据
@@ -222,7 +278,7 @@ public class MainController extends BaseController {
         
         logger.info("清除导航选择");
     }
-    
+
     /**
      * 处理策略变更
      */
@@ -230,7 +286,7 @@ public class MainController extends BaseController {
         Object selectedItem = mainFrame.getStrategyComboBox().getSelectedItem();
         if (selectedItem instanceof NavigationStrategy) {
             selectedStrategy = (NavigationStrategy) selectedItem;
-            logger.debug("导航策略变更为: {}", selectedStrategy.getDisplayName());
+            logger.debug("导航策略变更为: {}", selectedStrategy.getDisplayName()); // 使用getDisplayName()
         }
     }
     

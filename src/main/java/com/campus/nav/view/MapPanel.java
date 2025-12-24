@@ -590,4 +590,9 @@ public class MapPanel extends JPanel {
     public Location getHoveredLocation() {
         return hoveredLocation;
     }
+
+    public void setHoveredLocation(Location hoveredLocation) {
+        this.hoveredLocation = hoveredLocation;
+    }
+
 }

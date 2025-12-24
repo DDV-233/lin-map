@@ -307,7 +307,11 @@ public class PathManagementDialog extends JDialog {
         setButtonStyle(searchButton, new Color(0, 123, 255)); // 蓝色
         setButtonStyle(prevButton, new Color(108, 117, 125)); // 灰色
         setButtonStyle(nextButton, new Color(108, 117, 125)); // 灰色
-        
+
+        // 设置地点选择框
+        setLocationComboBoxRenderer(startLocationComboBox);
+        setLocationComboBoxRenderer(endLocationComboBox);
+
         // 设置表格
         pathTable.setRowHeight(25);
         pathTable.getTableHeader().setFont(new Font("Microsoft YaHei", Font.BOLD, 12));
@@ -406,7 +410,46 @@ public class PathManagementDialog extends JDialog {
         isActiveCheckBox.setSelected(true);
         pathTable.clearSelection();
     }
-    
+
+    /**
+     * 设置地点下拉框的自定义渲染器
+     */
+    private void setLocationComboBoxRenderer(JComboBox<Location> comboBox) {
+        comboBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value,
+                                                          int index, boolean isSelected,
+                                                          boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+
+                if (value == null) {
+                    setText("请选择地点...");
+                    setFont(getFont().deriveFont(Font.ITALIC));
+                    setForeground(Color.GRAY);
+                } else if (value instanceof Location) {
+                    Location location = (Location) value;
+
+                    // 设置地点名称和类型
+                    String displayText = location.getName();
+                    if (location.getType() != null && !displayText.contains(location.getType().getDescription())) {
+                        displayText += " (" + location.getType().getDescription() + ")";
+                    }
+
+                    setText(displayText);
+                    setFont(getFont().deriveFont(Font.PLAIN));
+                    setForeground(Color.BLACK);
+                } else {
+                    setText(value.toString());
+                }
+
+                return this;
+            }
+        });
+
+        // 设置下拉框提示文本
+        comboBox.setToolTipText("选择地点");
+    }
+
     /**
      * 获取搜索关键词
      */

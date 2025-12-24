@@ -11,8 +11,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.EventObject;
 import java.util.List;
 
 /**
@@ -148,6 +150,14 @@ public class MapController extends BaseController {
      * 显示地点选择菜单
      */
     private void showLocationSelectionMenu(Location location, int x, int y) {
+        // 创建竖排按钮面板
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridLayout(6, 1, 5, 5)); // 6行1列，5像素间距
+
+        // 创建按钮数组
+        JButton[] buttons = new JButton[6];
+
+        // 设置按钮文本
         String[] options = {
                 "设为起点",
                 "设为终点",
@@ -157,17 +167,111 @@ public class MapController extends BaseController {
                 "取消"
         };
 
-        int choice = JOptionPane.showOptionDialog(
-                mapPanel,
-                "选择对地点 \"" + location.getName() + "\" 的操作:",
-                "地点操作",
-                JOptionPane.DEFAULT_OPTION,
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                options,
-                options[0]
-        );
+        // 创建并添加按钮
+        for (int i = 0; i < options.length; i++) {
+            JButton button = new JButton(options[i]);
+            button.setFont(new Font("Microsoft YaHei", Font.PLAIN, 12));
+            button.setFocusPainted(false);
+            button.setMargin(new Insets(5, 15, 5, 15));
 
+            final int choice = i;
+            button.addActionListener(e -> handleLocationMenuChoice(choice, location));
+
+            buttons[i] = button;
+            buttonPanel.add(button);
+
+            // 为不同按钮设置不同颜色
+            switch (i) {
+                case 0: // 设为起点
+                    button.setBackground(new Color(40, 167, 69)); // 绿色
+                    button.setForeground(Color.WHITE);
+                    break;
+                case 1: // 设为终点
+                    button.setBackground(new Color(220, 53, 69)); // 红色
+                    button.setForeground(Color.WHITE);
+                    break;
+                case 2: // 设为起点并导航
+                    button.setBackground(new Color(40, 167, 69, 150)); // 半透明绿色
+                    button.setForeground(Color.WHITE);
+                    break;
+                case 3: // 设为终点并导航
+                    button.setBackground(new Color(220, 53, 69, 150)); // 半透明红色
+                    button.setForeground(Color.WHITE);
+                    break;
+                case 4: // 查看详情
+                    button.setBackground(new Color(0, 123, 255)); // 蓝色
+                    button.setForeground(Color.WHITE);
+                    break;
+                case 5: // 取消
+                    button.setBackground(new Color(108, 117, 125)); // 灰色
+                    button.setForeground(Color.WHITE);
+                    break;
+            }
+
+            // 添加悬停效果
+            Color originalBg = button.getBackground();
+            button.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    button.setBackground(originalBg.brighter());
+                }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    button.setBackground(originalBg);
+                }
+            });
+        }
+
+        // 设置面板边框
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // 创建主面板
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // 添加标题
+        JLabel titleLabel = new JLabel("选择对地点 \"" + location.getName() + "\" 的操作:");
+        titleLabel.setFont(new Font("Microsoft YaHei", Font.BOLD, 14));
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        mainPanel.add(titleLabel, BorderLayout.NORTH);
+
+        // 添加地点图标和信息（可选）
+        JPanel infoPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        infoPanel.add(new JLabel("📍 " + location.getName()));
+        if (location.getType() != null) {
+            infoPanel.add(new JLabel(" (" + location.getType().getDescription() + ")"));
+        }
+        mainPanel.add(infoPanel, BorderLayout.CENTER);
+
+        // 添加按钮面板
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        // 创建自定义对话框
+        JDialog dialog = new JDialog(
+                (Frame) SwingUtilities.getWindowAncestor(mapPanel),
+                "地点操作",
+                true
+        );
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.setContentPane(mainPanel);
+        dialog.pack();
+        dialog.setLocationRelativeTo(mapPanel);
+        dialog.setVisible(true);
+    }
+
+    /**
+     * 处理地点菜单选择
+     */
+    private void handleLocationMenuChoice(int choice, Location location) {
+        // 关闭对话框
+        Window dialog = SwingUtilities.getWindowAncestor((Component) ((JButton) ((EventObject)
+                java.awt.EventQueue.getCurrentEvent()).getSource()));
+        if (dialog != null) {
+            dialog.dispose();
+        }
+
+        // 处理选择
         switch (choice) {
             case 0: // 设为起点
                 setStartLocation(location);
@@ -194,8 +298,9 @@ public class MapController extends BaseController {
             case 4: // 查看详情
                 showLocationDetails(location);
                 break;
-            default: // 取消，不做任何操作
+            case 5: // 取消
                 logger.debug("用户取消了操作");
+                break;
         }
     }
 
@@ -235,7 +340,7 @@ public class MapController extends BaseController {
                 logger.debug("鼠标悬停在地点上: {}", hoveredLocation.getName());
             }
             // 这里需要给MapPanel添加设置悬停地点的方法
-            // mapPanel.setHoveredLocation(hoveredLocation);
+            mapPanel.setHoveredLocation(hoveredLocation);
             mapPanel.repaint();
         }
     }

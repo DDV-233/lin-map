@@ -111,5 +111,10 @@ public class Location {
             }
             return descriptions;
         }
+
+        @Override
+        public String toString() {
+            return name();
+        }
     }
 }

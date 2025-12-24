@@ -333,6 +333,8 @@ public class MainFrame extends JFrame {
         startLocationComboBox.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "选择起点...");
         endLocationComboBox.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "选择终点...");
 
+        setNavigationStrategyComboBoxRenderer();
+
         // 设置面板背景
         leftPanel.setBackground(new Color(248, 249, 250));
         controlPanel.setBackground(new Color(248, 249, 250));
@@ -408,6 +410,10 @@ public class MainFrame extends JFrame {
     private void initData() {
         // 设置默认策略
         strategyComboBox.setSelectedItem(NavigationStrategy.SHORTEST);
+
+        // 设置地点下拉框的渲染器
+        setLocationComboBoxRenderer(startLocationComboBox);
+        setLocationComboBoxRenderer(endLocationComboBox);
 
         // 根据用户类型设置管理员菜单可见性
         setAdminFeaturesVisible(currentUser.getUserType() == User.UserType.ADMIN);
@@ -498,7 +504,108 @@ public class MainFrame extends JFrame {
      * 设置导航策略
      */
     public void setNavigationStrategy(NavigationStrategy strategy) {
-        strategyComboBox.setSelectedItem(strategy);
+        if (strategy != null) {
+            strategyComboBox.setSelectedItem(strategy);
+        }
+    }
+    /**
+     * 设置导航策略组合框的渲染器
+     */
+    private void setNavigationStrategyComboBoxRenderer() {
+        strategyComboBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value,
+                                                          int index, boolean isSelected,
+                                                          boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+
+                if (value instanceof NavigationStrategy) {
+                    NavigationStrategy strategy = (NavigationStrategy) value;
+                    setText(strategy.getDisplayName());
+
+                    // 设置图标颜色
+                    switch (strategy) {
+                        case SHORTEST:
+                            setIcon(createStrategyIcon(new Color(52, 152, 219))); // 蓝色
+                            break;
+                        case SHADIEST:
+                            setIcon(createStrategyIcon(new Color(46, 204, 113))); // 绿色
+                            break;
+                        case MOST_SCENIC:
+                            setIcon(createStrategyIcon(new Color(255, 193, 7))); // 黄色
+                            break;
+                    }
+                } else if (value == null) {
+                    setText("选择导航策略...");
+                    setFont(getFont().deriveFont(Font.ITALIC));
+                    setForeground(Color.GRAY);
+                }
+
+                return this;
+            }
+        });
+
+        // 设置下拉框提示文本
+        strategyComboBox.setToolTipText("选择导航策略");
+    }
+
+    /**
+     * 设置地点下拉框的渲染器
+     */
+    private void setLocationComboBoxRenderer(JComboBox<Location> comboBox) {
+        comboBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value,
+                                                          int index, boolean isSelected,
+                                                          boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+
+                if (value == null) {
+                    setText("请选择地点...");
+                    setFont(getFont().deriveFont(Font.ITALIC));
+                    setForeground(Color.GRAY);
+                } else if (value instanceof Location) {
+                    Location location = (Location) value;
+                    String displayText = location.getName();
+
+                    // 添加类型信息
+                    if (location.getType() != null && !displayText.contains(location.getType().getDescription())) {
+                        displayText += " (" + location.getType().getDescription() + ")";
+                    }
+
+                    setText(displayText);
+                    setFont(getFont().deriveFont(Font.PLAIN));
+                    setForeground(Color.BLACK);
+                }
+
+                return this;
+            }
+        });
+    }
+
+    private Icon createStrategyIcon(Color color) {
+        return new Icon() {
+            @Override
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(color);
+                g2d.fillOval(x + 2, y + 2, 8, 8);
+                g2d.setColor(color.darker());
+                g2d.drawOval(x + 2, y + 2, 8, 8);
+                g2d.dispose();
+            }
+
+            @Override
+            public int getIconWidth() {
+                return 12;
+            }
+
+            @Override
+            public int getIconHeight() {
+                return 12;
+            }
+        };
     }
 
     /**
