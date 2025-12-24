@@ -42,43 +42,54 @@ public class MainController extends BaseController {
         initListeners();
         updateUI();
     }
-    
+
     /**
      * 初始化数据
      */
     private void initData() {
         // 加载地点数据
         loadLocations();
-        
+        // 加载路径数据
+        loadPaths();
+
         // 设置默认导航策略
         selectedStrategy = NavigationStrategy.SHORTEST;
         mainFrame.setNavigationStrategy(selectedStrategy);
-        
+
+        // 创建地图控制器
+        MapPanel mapPanel = mainFrame.getMapPanel();
+        new MapController(mapPanel, this);
+
         logger.info("主界面控制器初始化完成，用户: {}", currentUser.getUsername());
     }
     
+
     /**
      * 初始化事件监听器
      */
     private void initListeners() {
         // 导航按钮事件
         mainFrame.getNavigateButton().addActionListener(this::handleNavigate);
-        
+
         // 清除按钮事件
         mainFrame.getClearButton().addActionListener(this::handleClear);
-        
+
+        // 刷新按钮事件
+        mainFrame.getRefreshButton().addActionListener(e -> handleRefresh());
+
         // 策略选择事件
         mainFrame.getStrategyComboBox().addActionListener(this::handleStrategyChange);
-        
+
         // 地点选择事件
         mainFrame.getStartLocationComboBox().addActionListener(this::handleStartLocationChange);
         mainFrame.getEndLocationComboBox().addActionListener(this::handleEndLocationChange);
-        
+
         // 菜单项事件
         mainFrame.getLogoutMenuItem().addActionListener(e -> handleLogout());
         mainFrame.getExitMenuItem().addActionListener(e -> handleExit());
         mainFrame.getAboutMenuItem().addActionListener(e -> handleAbout());
-        
+        mainFrame.getSettingsMenuItem().addActionListener(e -> handleSettings());
+
         // 管理员菜单项（仅管理员可见）
         if (currentUser.getUserType() == User.UserType.ADMIN) {
             mainFrame.getManageUsersMenuItem().addActionListener(e -> handleManageUsers());
@@ -86,7 +97,7 @@ public class MainController extends BaseController {
             mainFrame.getManagePathsMenuItem().addActionListener(e -> handleManagePaths());
             mainFrame.getViewHistoryMenuItem().addActionListener(e -> handleViewHistory());
         }
-        
+
         // 用户菜单项
         mainFrame.getViewMyHistoryMenuItem().addActionListener(e -> handleViewMyHistory());
         mainFrame.getChangePasswordMenuItem().addActionListener(e -> handleChangePassword());
@@ -100,12 +111,13 @@ public class MainController extends BaseController {
             List<Location> locations = locationService.findAccessibleLocations();
             
             // 更新下拉框
-            DefaultComboBoxModel<Location> model = new DefaultComboBoxModel<>();
-            model.addElement(null); // 添加空选项
+            DefaultComboBoxModel<Location> model = new DefaultComboBoxModel<Location>();
             locations.forEach(model::addElement);
             
             mainFrame.getStartLocationComboBox().setModel(model);
-            mainFrame.getEndLocationComboBox().setModel(new DefaultComboBoxModel<>(model));
+            mainFrame.getEndLocationComboBox().setModel(new DefaultComboBoxModel<Location>(
+                    locations.toArray(new Location[0])
+            ));
             
             // 更新地图面板
             MapPanel mapPanel = mainFrame.getMapPanel();
@@ -118,7 +130,22 @@ public class MainController extends BaseController {
             showErrorDialog("加载地点数据失败: " + e.getMessage());
         }
     }
-    
+    /*
+    * 加载路径数据
+     */
+    private void loadPaths() {
+        try {
+            List<Path> paths = pathService.findActivePaths();
+            MapPanel mapPanel = mainFrame.getMapPanel();
+            mapPanel.setPaths(paths);
+            mapPanel.repaint();
+
+            logger.info("加载了 {} 个路径", paths.size());
+        } catch (Exception ex) {
+            logger.error("加载路径数据失败", ex);
+            showErrorDialog("加载路径数据失败: " + ex.getMessage());
+        }
+    }
     /**
      * 处理导航
      */
@@ -369,32 +396,69 @@ public class MainController extends BaseController {
         
         logger.debug("UI状态更新完成，用户类型: {}", currentUser.getUserType());
     }
-    
+
+
+
     // 以下为管理员功能处理（待实现）
-    
+
+    /**
+     * 处理用户管理
+     */
     private void handleManageUsers() {
-        showWarningDialog("用户管理功能正在开发中...");
-        // TODO: 实现用户管理界面
+        try {
+            new UserManagementController(currentUser, mainFrame);
+        } catch (Exception e) {
+            logger.error("打开用户管理失败", e);
+            showErrorDialog("打开用户管理失败: " + e.getMessage());
+        }
     }
-    
+
+    /**
+     * 处理地点管理
+     */
     private void handleManageLocations() {
-        showWarningDialog("地点管理功能正在开发中...");
-        // TODO: 实现地点管理界面
+        try {
+            new LocationManagementController(currentUser, mainFrame);
+        } catch (Exception e) {
+            logger.error("打开地点管理失败", e);
+            showErrorDialog("打开地点管理失败: " + e.getMessage());
+        }
     }
-    
+
+    /**
+     * 处理路径管理
+     */
     private void handleManagePaths() {
-        showWarningDialog("路径管理功能正在开发中...");
-        // TODO: 实现路径管理界面
+        try {
+            new PathManagementController(currentUser, mainFrame);
+        } catch (Exception e) {
+            logger.error("打开路径管理失败", e);
+            showErrorDialog("打开路径管理失败: " + e.getMessage());
+        }
     }
-    
+
+    /**
+     * 处理查看历史（管理员）
+     */
     private void handleViewHistory() {
-        showWarningDialog("历史记录查看功能正在开发中...");
-        // TODO: 实现历史记录查看界面
+        try {
+            new NavigationHistoryController(currentUser, mainFrame, true);
+        } catch (Exception e) {
+            logger.error("打开历史记录失败", e);
+            showErrorDialog("打开历史记录失败: " + e.getMessage());
+        }
     }
-    
+
+    /**
+     * 处理查看我的历史
+     */
     private void handleViewMyHistory() {
-        showWarningDialog("我的历史记录功能正在开发中...");
-        // TODO: 实现个人历史记录界面
+        try {
+            new NavigationHistoryController(currentUser, mainFrame, false);
+        } catch (Exception e) {
+            logger.error("打开我的历史记录失败", e);
+            showErrorDialog("打开我的历史记录失败: " + e.getMessage());
+        }
     }
     
     private void handleChangePassword() {
@@ -408,4 +472,28 @@ public class MainController extends BaseController {
     public User getCurrentUser() {
         return currentUser;
     }
+
+    /**
+     * 处理刷新
+     */
+    private void handleRefresh() {
+        loadLocations();
+        loadPaths();
+        showSuccessDialog("地图数据已刷新");
+    }
+
+    /**
+     * 处理设置
+     */
+    private void handleSettings() {
+        showWarningDialog("系统设置功能正在开发中...");
+        // TODO: 实现系统设置界面
+    }
+
+    // 更新获取主窗口的方法
+    public MainFrame getMainFrame() {
+        return mainFrame;
+    }
+
+
 }

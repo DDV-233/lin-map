@@ -33,11 +33,12 @@ public class LocationManagementController extends AdminBaseController {
         this.locationService = ServiceFactory.getLocationService();
         
         initListeners();
+
         loadData();
         updateUI();
+        dialog.setVisible(true);
     }
-    
-    @Override
+
     protected void initListeners() {
         // 按钮事件
         dialog.getAddButton().addActionListener(this::handleAdd);

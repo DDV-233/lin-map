@@ -50,6 +50,8 @@ public class Main {
      */
     private static void setUIFont() {
         Font font = new Font("Microsoft YaHei", Font.PLAIN, 12);
+
+        // 设置所有UI组件的字体
         UIManager.put("Button.font", font);
         UIManager.put("ToggleButton.font", font);
         UIManager.put("RadioButton.font", font);
@@ -81,5 +83,12 @@ public class Main {
         UIManager.put("ToolBar.font", font);
         UIManager.put("ToolTip.font", font);
         UIManager.put("Tree.font", font);
+
+        // 设置UI颜色
+        UIManager.put("Panel.background", new Color(248, 249, 250));
+        UIManager.put("OptionPane.background", new Color(248, 249, 250));
+        UIManager.put("ComboBox.background", Color.WHITE);
+        UIManager.put("TextField.background", Color.WHITE);
+        UIManager.put("TextArea.background", Color.WHITE);
     }
 }
