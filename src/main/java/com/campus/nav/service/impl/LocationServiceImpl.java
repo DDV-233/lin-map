@@ -3,6 +3,7 @@ package com.campus.nav.service.impl;
 import com.campus.nav.config.SystemConfig;
 import com.campus.nav.dao.DaoFactory;
 import com.campus.nav.dao.LocationDao;
+import com.campus.nav.dao.PathDao;
 import com.campus.nav.exception.ValidationException;
 import com.campus.nav.model.Location;
 import com.campus.nav.service.LocationService;
@@ -21,11 +22,14 @@ public class LocationServiceImpl extends AbstractBaseService<Location, Integer> 
     private static final Logger logger = LogManager.getLogger(LocationServiceImpl.class);
     
     private final LocationDao locationDao;
+
+    private final PathDao pathDao;
     
     public LocationServiceImpl() {
         this.locationDao = DaoFactory.getLocationDao();
+        this.pathDao = DaoFactory.getPathDao();
     }
-    
+
     @Override
     public Optional<Location> findByName(String name) {
         try {
@@ -199,13 +203,14 @@ public class LocationServiceImpl extends AbstractBaseService<Location, Integer> 
     
     @Override
     public boolean deleteById(Integer id) {
+        boolean result;
         try {
             if (id == null) {
                 throw new ValidationException("地点ID不能为空");
             }
-            
-            return locationDao.deleteById(id);
-            
+            pathDao.deleteByLocationId(id);
+            result = locationDao.deleteById(id);
+            return result;
         } catch (ValidationException e) {
             logger.warn("删除地点验证失败: {}", id, e);
             throw e;

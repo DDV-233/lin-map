@@ -10,7 +10,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,6 +35,9 @@ public class PathDaoImpl extends AbstractBaseDao<Path, Integer> implements PathD
             " SET distance = ?, time_cost = ?, has_shade = ?, scenic_level = ?, " +
             "is_indoor = ?, is_active = ? WHERE id = ?";
     private static final String DELETE_SQL = "DELETE FROM " + TABLE_NAME + " WHERE id = ?";
+    private static final String DELETE_BY_LOCATION_ID_SQL =
+            "DELETE FROM paths WHERE start_location_id = ? OR end_location_id = ?";
+
     private static final String SELECT_BY_ID = "SELECT " + COLUMNS + " " + FROM_CLAUSE + " WHERE p.id = ?";
     private static final String SELECT_ALL = "SELECT " + COLUMNS + " " + FROM_CLAUSE + " ORDER BY p.id";
     private static final String SELECT_BY_START_END = "SELECT " + COLUMNS + " " + FROM_CLAUSE + 
@@ -101,7 +103,17 @@ public class PathDaoImpl extends AbstractBaseDao<Path, Integer> implements PathD
             return false;
         }
     }
-    
+    @Override
+    public boolean deleteByLocationId(Integer locationId){
+        try {
+            int affectedRows = DatabaseUtil.executeUpdate(DELETE_BY_LOCATION_ID_SQL, locationId, locationId);
+            return affectedRows > 0;
+        } catch (Exception e) {
+            logger.error("删除路径失败: {}", locationId, e);
+            return false;
+        }
+    }
+
     @Override
     public Optional<Path> findById(Integer id) {
         return queryForObject(SELECT_BY_ID, id);

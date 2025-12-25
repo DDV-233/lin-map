@@ -338,7 +338,7 @@ public class PathServiceImpl extends AbstractBaseService<Path, Integer> implemen
                 throw new ValidationException("路径ID不能为空");
             }
             
-            return pathDao.deleteById(id);
+            return pathDao.deleteByLocationId(id);
             
         } catch (ValidationException e) {
             logger.warn("删除路径验证失败: {}", id, e);

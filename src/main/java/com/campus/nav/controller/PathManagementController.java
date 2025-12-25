@@ -303,41 +303,12 @@ public class PathManagementController extends AdminBaseController {
         );
         
         if (confirm == JOptionPane.YES_OPTION) {
-            // 询问是否同时删除反向路径
-            boolean deleteBoth = JOptionPane.showConfirmDialog(
-                dialog,
-                "是否同时删除反向路径？",
-                "删除双向路径",
-                JOptionPane.YES_NO_OPTION
-            ) == JOptionPane.YES_OPTION;
-            
-            if (deleteBoth) {
-                // 查找并删除反向路径
-                Path reversePath = pathService.findByStartAndEnd(
-                        selectedPath.getEndLocationId(),
-                        selectedPath.getStartLocationId())
-                        .orElse(null);
-                
-                boolean success = pathService.deleteById(selectedPath.getId());
-                if (reversePath != null) {
-                    success = success && pathService.deleteById(reversePath.getId());
-                }
-                
-                if (success) {
-                    showSuccessDialog("双向路径删除成功");
-                    clearForm();
-                    loadData();
-                } else {
-                    showErrorDialog("路径删除失败");
-                }
+            if (pathService.deleteById(selectedPath.getStartLocationId())){
+                showSuccessDialog("路径删除成功");
+                clearForm();
+                loadData();
             } else {
-                if (pathService.deleteById(selectedPath.getId())) {
-                    showSuccessDialog("路径删除成功");
-                    clearForm();
-                    loadData();
-                } else {
-                    showErrorDialog("路径删除失败");
-                }
+                showErrorDialog("路径删除失败");
             }
         }
     }

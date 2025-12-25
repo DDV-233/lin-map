@@ -9,7 +9,12 @@ import java.util.Optional;
  * 路径DAO接口
  */
 public interface PathDao extends BaseDao<Path, Integer> {
-    
+
+    /**
+     * 根据地点ID删除路径
+     */
+    boolean deleteByLocationId(Integer locationId);
+
     /**
      * 根据起点和终点查询路径
      */
