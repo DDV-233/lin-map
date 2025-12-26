@@ -509,12 +509,8 @@ public class MainController extends BaseController {
      * 处理查看我的历史
      */
     private void handleViewMyHistory() {
-        try {
-            new NavigationHistoryController(currentUser, mainFrame, false);
-        } catch (Exception e) {
-            logger.error("打开我的历史记录失败", e);
-            showErrorDialog("打开我的历史记录失败: " + e.getMessage());
-        }
+        showWarningDialog("查看历史功能正在开发中...");
+        // TODO: 实现查看我的历史界面
     }
     
     private void handleChangePassword() {

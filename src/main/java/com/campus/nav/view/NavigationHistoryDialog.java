@@ -336,7 +336,7 @@ public class NavigationHistoryDialog extends JDialog {
     }
 
     private void initWindow() {
-        setSize(1200, 750);
+        setSize(1000, 750);
         setLocationRelativeTo(getParent());
         setResizable(true);
     }

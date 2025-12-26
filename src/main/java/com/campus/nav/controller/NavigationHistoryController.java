@@ -14,6 +14,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -145,7 +146,7 @@ public class NavigationHistoryController extends AdminBaseController {
         }
 
         // 设置默认日期范围（最近30天）
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now().plusHours(8);
         LocalDateTime thirtyDaysAgo = now.minusDays(30);
 
         dialog.getDateFromSpinner().setValue(
